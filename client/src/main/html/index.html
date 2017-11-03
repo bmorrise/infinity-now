@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script>
+        $(function () {
+            var socket = io("http://localhost:9092");
+            var commandInput = $("#command-input");
+            var responsesElem = $("#responses");
+            var autoFill = $("#autofill");
+            var system = "";
+            var command = "";
+            var passwordChars = "";
+            var passwordMode = false;
+            var commandHistory = [];
+            var commandHistoryIndex = commandHistory.length - 1;
+            var systems = {"join": [], "help": []};
+            var keys = Object.keys(systems);
+            var possible = [];
+            var persistent = "";
+
+            socket.on('persist', function (data) {
+                persistent = commandHistory[commandHistory.length - 1];
+                $("#outerbox").addClass("persistent");
+            });
+            socket.on('commands', function (data) {
+                systems = data;
+                keys = Object.keys(systems);
+            });
+            socket.on('possible', function (data) {
+                console.log(data);
+                possible = data;
+            });
+            socket.on('response', function (data) {
+                showOutput(data);
+            });
+            socket.on('clear', function (data) {
+                $('#main').html("");
+                $('#secondary').html("");
+            });
+            socket.on('secondary', function (data) {
+                showSecondary(data);
+            });
+            socket.on('status', function (data) {
+                var message = $("#message");
+                message.html(data);
+                message.css('left', $(window).width() / 2 - message.outerWidth() / 2);
+                message.css('opacity', 0);
+                message.animate({
+                    top: 10,
+                    opacity: 1
+                }, 500);
+                setTimeout(function () {
+                    message.animate({
+                        top: -50,
+                        opacity: 0
+                    }, 500);
+                }, 3000);
+            });
+            socket.on('connect', function (data) {
+                commandInput.prop("disabled", false);
+                commandInput.focus();
+                socket.emit('command', {command: "join bmorrise 9876"})
+            });
+
+            $('#command-form').submit(function (e) {
+                try {
+                    var command = commandInput.val().trim();
+                    if (persistent !== "") {
+                        command = persistent + " " + command;
+                    }
+                    var parts = command.split(" ");
+                    var commandText = "";
+                    if (parts.length >= 3 && parts[0] === "join") {
+                        var items = [parts[0], parts[1], passwordChars];
+                        commandText = items.join(" ");
+                        passwordChars = "";
+                    } else {
+                        commandText = command;
+                    }
+                    commandHistory.push(parts.slice(0, 2).join(" "));
+                    if (commandHistory.length > 20) {
+                        commandHistory.shift();
+                    }
+                    commandHistoryIndex = commandHistory.length - 1;
+                    socket.emit('command', {command: commandText});
+                    commandInput.val("");
+                    autoFill.html("");
+                } catch (e) {
+                    console.log("An error occurred while submitting the command");
+                }
+                return false;
+            });
+
+            function getKeyword(value) {
+                return matchKeyword(keys, value);
+            }
+
+            function getCommand(system, value) {
+                return matchKeyword(systems[system], value);
+            }
+
+            function matchKeyword(items, value) {
+                var matches = [];
+                if (items && value && value !== "") {
+                    for (var i = 0; i < items.length; i++) {
+                        if (items[i].startsWith(value)) {
+                            matches.push(items[i]);
+                        }
+                    }
+                }
+                console.log(matches);
+                if (matches.length === 1) {
+                    return matches[0] + " ";
+                } else if (matches.length > 1) {
+                    var longest = "";
+                    for (var i = 0; i < matches.length; i++) {
+                        if (matches[i].length > longest.length) {
+                            longest = matches[i];
+                        }
+                    }
+                    for (var i = 0; i < longest.length; i++) {
+                        for (j = 0; j < matches.length; j++) {
+                            if (matches[j].indexOf(longest.substring(0, i)) === -1) {
+                                return longest.substring(0, i - 1);
+                            }
+                        }
+                    }
+                    return longest;
+                }
+                return "";
+            }
+
+            function getAutofill(value) {
+                var parts = value.split(" ");
+                var keyword = getKeyword(parts[0]);
+                if (parts.length > 1) {
+                    if (keyword.trim() !== parts[0].trim()) {
+                        keyword = "";
+                    }
+                }
+                if (parts.length > 2) {
+                    var output = "";
+                    for (var i = 0; i < parts.length - 1; i++) {
+                        output += parts[i] + " ";
+                    }
+                    var match = matchKeyword(possible, parts[parts.length - 1]);
+                    if (match !== "") {
+                        output += match;
+                    } else {
+                        output += parts[parts.length - 1];
+                    }
+                    return output;
+                } else {
+                    return keyword + getCommand(keyword.trim(), parts[1]);
+                }
+            }
+
+            commandInput.keyup(function (e) {
+                if (persistent !== "") {
+                    return true;
+                }
+                autoFill.html(getAutofill(this.value.toLowerCase()));
+                if (passwordMode === true) {
+                    if (e.keyCode === 8) {
+                        if (passwordChars.length > 0) {
+                            var value = commandInput.val();
+                            passwordChars = passwordChars.substring(0, passwordChars.length - 1);
+                            commandInput.val(value.substring(0, value.length - 1));
+                        }
+                    } else {
+                        passwordChars += String.fromCharCode(e.keyCode);
+                        commandInput.val(commandInput.val() + "*");
+                    }
+                }
+            });
+
+            commandInput.keydown(function (e) {
+                if (e.keyCode === 8 && this.value === "") {
+                    if (persistent !== "") {
+                        persistent = "";
+                        $("#outerbox").removeClass("persistent");
+                    }
+                }
+                if (e.keyCode === 38) {
+                    if (commandHistory.length > 0) {
+                        commandInput.val(commandHistory[commandHistoryIndex] + " ");
+                        commandHistoryIndex--;
+                        if (commandHistoryIndex === -1) {
+                            commandHistoryIndex = commandHistory.length - 1;
+                        }
+                        autoFill.html("");
+                        return false;
+                    }
+                }
+                if (e.keyCode === 40) {
+                    if (commandHistory.length > 0) {
+                        commandInput.val(commandHistory[commandHistoryIndex] + " ");
+                        commandHistoryIndex++;
+                        if (commandHistoryIndex === commandHistory.length) {
+                            commandHistoryIndex = 0;
+                        }
+                        autoFill.html("");
+                        return false;
+                    }
+                }
+                var parts = this.value.split(" ");
+                if (parts.length >= 3 && parts[0] === "join") {
+                    if (e.keyCode === 8 && passwordChars.length === 0) {
+                        return true;
+                    }
+                    if (e.keyCode === 13) {
+                        passwordMode = false;
+                        return true;
+                    }
+                    passwordMode = true;
+                    return false;
+                } else {
+                    passwordMode = false;
+                }
+                // Tab key
+                if (e.keyCode === 9) {
+                    var keyword = getKeyword(parts[0]);
+                    var command = getCommand(parts[0], parts[1]);
+                    if (keyword !== "" && parts.length === 1) {
+                        commandInput.val(keyword);
+                    }
+                    if (command !== "" && parts.length === 2) {
+                        commandInput.val(keyword + command);
+                    }
+                    if (parts.length > 2) {
+                        var output = "";
+                        for (var i = 0; i < parts.length - 1; i++) {
+                            output += parts[i] + " ";
+                        }
+                        var match = matchKeyword(possible, parts[parts.length - 1]);
+                        if (match !== "") {
+                            output += match;
+                        } else {
+                            output += parts[parts.length - 1];
+                        }
+                        commandInput.val(output);
+                    }
+                    return false;
+                }
+            });
+        });
+
+        function showOutput(output) {
+            if (output !== "") {
+                var responsesElement = $("#main");
+                responsesElement.append(output + '<br/>');
+                responsesElement.animate({scrollTop: responsesElement[0].scrollHeight});
+            }
+        }
+        function showSecondary(output) {
+            if (output !== "") {
+                var secondaryElement = $("#secondary");
+                secondaryElement.html(output);
+                secondaryElement.animate({scrollTop: secondaryElement[0].scrollHeight});
+            }
+        }
+    </script>
+    <style type="text/css">
+        body {
+            margin: 0;
+            font-family: "Helvetica Neue", sans-serif;
+            background-color: #e7e7e7;
+        }
+
+        #responses {
+            position: absolute;
+            bottom: 69px;
+            top: 0;
+            left: 0;
+            right: 0;
+            overflow: scroll;
+            background-color: #ffffff;
+        }
+
+        #main {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 30%;
+            overflow: scroll;
+            padding: 50px;
+            text-align: justify;
+            white-space: pre-wrap;
+            line-height: 1.5;
+            background-color: #fafafa;
+        }
+
+        #secondary {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 70%;
+            right: 0;
+            overflow: scroll;
+            padding: 10px;
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+
+        #form {
+            position: absolute;
+            bottom: 0px;
+            width: 100%;
+        }
+
+        #form input {
+            border: 0;
+            padding: 10px;
+            font-size: 1.5em;
+            width: calc(100% - 20px);
+        }
+
+        input:disabled {
+            background-color: #b7b7b7;
+        }
+
+        input:focus {
+            outline: none;
+        }
+
+        #form div.outerbox {
+            border-radius: 5px;
+            position: relative;
+            margin: 10px;
+        }
+
+        pre {
+            font-family: "Helvetica Neue", sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        #command-form {
+            position: relative;
+        }
+
+        div#autofill {
+            top: 0;
+            left: 0;
+            padding: 10px;
+            font-size: 1.5em;
+            color: #979797;
+            z-index: -1;
+            position: absolute;
+        }
+
+        input#command-input {
+            font-family: "Helvetica Neue", sans-serif;
+            background: transparent;
+        }
+
+        div#message {
+            position: absolute;
+            top: -50px;
+            background-color: #d7d7d7;
+            border: 1px solid #787878;
+            border-radius: 3px;
+            padding: 10px 30px;
+            width: 400px;
+        }
+
+        .persistent {
+            background-image: url('arrow-right.png');
+            background-repeat: no-repeat;
+            background-position: center left;
+        }
+
+        .persistent #command-form {
+            margin-left: 30px;
+        }
+
+        div.system-status {
+            font-size: .73em;
+            border: 1px solid #000000;
+            padding: 10px;
+            -webkit-border-radius: 5px;
+            -moz-border-radius: 5px;
+            border-radius: 5px;
+        }
+
+        div.operational {
+            background-color: lightgreen;
+        }
+    </style>
+</head>
+<div id="responses">
+    <div id="main"></div>
+    <div id="secondary"></div>
+</div>
+<div id="form">
+    <div id="outerbox" class="outerbox">
+        <form id="command-form">
+            <div id="autofill"></div>
+            <input id="command-input" autocomplete="off" disabled="true"/>
+        </form>
+    </div>
+</div>
+<div id="message">Empty</div>
+</html>

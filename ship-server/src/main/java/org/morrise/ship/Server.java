@@ -48,18 +48,18 @@ public class Server {
   private MessageBroker messageBroker = MessageBroker.getInstance();
   private Properties properties;
 
-  public Server() throws IOException {
+  public Server( String shipPath, String configPath ) throws IOException {
     commandQueue = new ConcurrentLinkedQueue<>();
 
     ShipLoader shipLoader = new ShipLoader();
-    ship = shipLoader.load( "/Users/bmorrise/Documents/aries.yml" );
+    ship = shipLoader.load( shipPath );
 
     properties = new Properties();
-    properties.load( new FileReader( "/Users/bmorrise/Documents/infinity-now/ship-server/src/main/resources/config.properties" ) );
+    properties.load( new FileReader( configPath ) );
   }
 
   public static void main( String[] args ) throws Exception {
-    Server server = new Server();
+    Server server = new Server( args[0], args[1] );
     server.start();
 //
 //    Client client = new Client();

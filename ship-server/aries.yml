@@ -1,0 +1,106 @@
+# Ship
+name: Aries
+characters:
+- first: Ben
+  last: Morrise
+  username: bmorrise
+  password: '9876'
+  rank: CAPTAIN
+  health: 50
+  energy: 50
+  state: STANDING
+  room: Ready room
+- first: Kevin
+  last: Andersen
+  username: kandersen
+  password: '0002'
+  rank: LIEUTENANT_COMMANDER
+  health: 50
+  energy: 50
+  state: STANDING
+  room: Bridge
+- first: Alan
+  last: Caldwell
+  username: acaldwell
+  password: '0001'
+  rank: COMMANDER
+  health: 50
+  energy: 50
+  state: STANDING
+  room: Bridge
+coordinates:
+  x: 0
+  y: 0
+  z: 0
+powerSource:
+  units: 1000
+  state: CHARGED
+items:
+- flavor: org.morrise.core.models.ship.engine.WarpEngine
+  state:
+  maxSpeed: 100
+- flavor: org.morrise.core.models.ship.shield.EnergyShield
+  state: DOWN
+  strength: 1000
+decks:
+- rooms:
+  - name: Bridge
+    width: 0
+    depth: 0
+    description: This is the Bridge
+    items:
+    - flavor: org.morrise.core.models.item.furniture.CaptainChair
+      name: Captain Chair
+    adjacent:
+      - ready room
+      - observation lounge
+    accessibleSystems:
+      - all
+  - name: Ready room
+    width: 15
+    depth: 15
+    description: This is the captains Ready room
+    accessibleSystems:
+      - sensors
+      - communications
+    items:
+    - flavor: org.morrise.core.models.item.furniture.Chair
+      name: Chair
+    - flavor: org.morrise.core.models.item.furniture.Couch
+      name: Couch
+    - flavor: org.morrise.core.models.item.furniture.Desk
+      name: Desk
+      items:
+        - flavor: org.morrise.core.models.item.food.Apple
+          name: Granny Smith Apple
+    adjacent:
+      - bridge
+  - name: Observation lounge
+    width: 40
+    depth: 20
+    description: This is the Observation lounge
+    items:
+      - flavor: org.morrise.core.models.item.furniture.Chair
+        name: Chair
+      - flavor: org.morrise.core.models.item.furniture.Chair
+        name: Chair
+      - flavor: org.morrise.core.models.item.furniture.Chair
+        name: Chair
+      - flavor: org.morrise.core.models.item.furniture.Chair
+        name: Chair
+      - flavor: org.morrise.core.models.item.furniture.Chair
+        name: Chair
+      - flavor: org.morrise.core.models.item.furniture.Chair
+        name: Chair
+      - flavor: org.morrise.core.models.item.furniture.Chair
+        name: Chair
+      - flavor: org.morrise.core.models.item.furniture.Chair
+        name: Chair
+      - flavor: org.morrise.core.models.item.furniture.Chair
+        name: Chair
+      - flavor: org.morrise.core.models.item.furniture.Chair
+        name: Chair
+    adjacent:
+      - bridge
+  number: 1
+  name: Upper

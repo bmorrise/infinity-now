@@ -57,12 +57,14 @@ public abstract class BaseSystemable extends BaseEntity implements Systemable, C
   private static void initCommands() {
     Reflections reflections = new Reflections( "org.morrise" );
     Set<Class<?>> annotated = reflections.getTypesAnnotatedWith( Command.class );
-    annotated.forEach( clazz -> {
-      Command command = clazz.getAnnotation( Command.class );
+    Iterator<?> iter = annotated.iterator();
+    while ( iter.hasNext() ) {
+      Class clazz = (Class) iter.next();
+      Command command = (Command) clazz.getAnnotation( Command.class );
       List<Class<?>> classList = commands.getOrDefault( command.system(), new ArrayList<>() );
       classList.add( clazz );
       commands.put( command.system(), classList );
-    } );
+    }
   }
 
   private void addCommands( System system ) {

@@ -23,7 +23,7 @@
 
 package org.morrise.core.system.powered.shields.command;
 
-import org.morrise.api.messages.MessageBroker;
+import org.morrise.api.messages.MainFrame;
 import org.morrise.api.models.character.Character;
 import org.morrise.api.system.command.BaseCommand;
 import org.morrise.api.system.command.Command;
@@ -46,9 +46,9 @@ public class UpCommand extends BaseCommand<ShieldsSystem> {
     Shield shield = system.getShield();
     if ( shield.isDown() && !shield.isMalfunction() ) {
       shield.up();
-      system.sendMessage( character, MessageBroker.STATUS, "Shields up" );
+      system.sendMessage( character, MainFrame.STATUS, "Shields up" );
     } else if ( shield.isMalfunction() ) {
-      system.sendMessage( character, MessageBroker.STATUS, "Shields have a malfunction" );
+      system.sendMessage( character, MainFrame.STATUS, "Shields have a malfunction" );
     }
     return true;
   }

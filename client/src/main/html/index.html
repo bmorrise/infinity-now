@@ -25,11 +25,16 @@
                 $("#outerbox").addClass("persistent");
             });
             socket.on('commands', function (data) {
+                console.log("!---------- START COMMANDS ----------!")
+                console.log(data);
+                console.log("!---------- END COMMANDS ----------!")
                 systems = data;
                 keys = Object.keys(systems);
             });
             socket.on('possible', function (data) {
+                console.log("!---------- START POSSIBLE ----------!")
                 console.log(data);
+                console.log("!---------- END POSSIBLE ----------!")
                 possible = data;
             });
             socket.on('response', function (data) {
@@ -86,7 +91,7 @@
                     commandHistoryIndex = commandHistory.length - 1;
                     socket.emit('command', {command: commandText});
                     commandInput.val("");
-                    autoFill.html("");
+                    autoFill.val("");
                 } catch (e) {
                     console.log("An error occurred while submitting the command");
                 }
@@ -110,7 +115,6 @@
                         }
                     }
                 }
-                console.log(matches);
                 if (matches.length === 1) {
                     return matches[0] + " ";
                 } else if (matches.length > 1) {
@@ -161,7 +165,7 @@
                 if (persistent !== "") {
                     return true;
                 }
-                autoFill.html(getAutofill(this.value.toLowerCase()));
+                autoFill.val(getAutofill(this.value.toLowerCase()));
                 if (passwordMode === true) {
                     if (e.keyCode === 8) {
                         if (passwordChars.length > 0) {
@@ -190,7 +194,7 @@
                         if (commandHistoryIndex === -1) {
                             commandHistoryIndex = commandHistory.length - 1;
                         }
-                        autoFill.html("");
+                        autoFill.val("");
                         return false;
                     }
                 }
@@ -201,7 +205,7 @@
                         if (commandHistoryIndex === commandHistory.length) {
                             commandHistoryIndex = 0;
                         }
-                        autoFill.html("");
+                        autoFill.val("");
                         return false;
                     }
                 }
@@ -342,14 +346,15 @@
             position: relative;
         }
 
-        div#autofill {
+        input#autofill {
             top: 0;
             left: 0;
             padding: 10px;
-            font-size: 1.5em;
             color: #979797;
             z-index: -1;
             position: absolute;
+            font-family: "Helvetica Neue", sans-serif;
+            background: transparent;
         }
 
         input#command-input {
@@ -397,9 +402,9 @@
 </div>
 <div id="form">
     <div id="outerbox" class="outerbox">
+        <input id="autofill" autocomplete="off" disabled/>
         <form id="command-form">
-            <div id="autofill"></div>
-            <input id="command-input" autocomplete="off" disabled="true"/>
+            <input id="command-input" autocomplete="off"/>
         </form>
     </div>
 </div>

@@ -23,7 +23,7 @@
 
 package org.morrise.core.system.character.me.command;
 
-import org.morrise.api.messages.MessageBroker;
+import org.morrise.api.messages.MainFrame;
 import org.morrise.api.models.character.Character;
 import org.morrise.api.models.item.Item;
 import org.morrise.api.models.item.types.Sitable;
@@ -48,7 +48,7 @@ public class StandCommand extends BaseCommand<MeSystem> {
     Item item = character.getItemByType( Sitable.class );
     if ( item != null ) {
       item.unuse( character );
-      system.sendMessage( character, MessageBroker.RESPONSE, "You stood up" );
+      system.sendMessage( character, MainFrame.RESPONSE, "You stood up" );
     }
     return true;
   }

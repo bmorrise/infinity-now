@@ -23,6 +23,7 @@
 
 package org.morrise.api.models.character;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.morrise.api.models.State;
 
 /**

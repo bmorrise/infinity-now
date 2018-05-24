@@ -23,7 +23,7 @@
 
 package org.morrise.core.system.character.me.command;
 
-import org.morrise.api.messages.MessageBroker;
+import org.morrise.api.messages.MainFrame;
 import org.morrise.api.models.character.Character;
 import org.morrise.api.system.command.BaseCommand;
 import org.morrise.api.system.command.Command;
@@ -42,14 +42,14 @@ public class SpeakCommand extends BaseCommand<MeSystem> {
   @Override
   public boolean process( Character character, String... arguments ) {
     logger.info( "Processing speak command..." );
-    MessageBroker messageBroker = system.getMessageBroker();
+    MainFrame mainFrame = system.getMainFrame();
     if ( arguments.length > 0 ) {
-      character.getCharacterable().getCharacters().forEach( character1 -> {
-        messageBroker.sendEventSingle( character1.getUuid(), MessageBroker.RESPONSE, arguments[0] );
-        messageBroker.persist( character.getUuid() );
+      character.getCharacterContainer().getCharacters().forEach( character1 -> {
+        mainFrame.sendEventSingle( character1.getUuid(), MainFrame.RESPONSE, arguments[0] );
+        mainFrame.persist( character.getUuid() );
       } );
     } else {
-      messageBroker.persist( character.getUuid() );
+      mainFrame.persist( character.getUuid() );
     }
     return true;
   }

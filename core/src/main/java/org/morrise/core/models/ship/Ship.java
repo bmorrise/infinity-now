@@ -23,58 +23,62 @@
 
 package org.morrise.core.models.ship;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.morrise.api.Operatable;
 import org.morrise.api.models.State;
 import org.morrise.api.models.character.Character;
-import org.morrise.api.models.character.Characterable;
+import org.morrise.api.models.character.CharacterContainer;
 import org.morrise.api.models.item.Item;
 import org.morrise.api.models.item.Itemable;
-import org.morrise.api.system.System;
-import org.morrise.api.system.powered.BasePoweredSystemable;
+import org.morrise.core.models.ship.structure.AccessibleToDeck;
 import org.morrise.core.models.ship.structure.Deck;
 import org.morrise.core.models.ship.structure.Room;
-import org.reflections.Reflections;
+import org.morrise.core.models.ship.structure.Structure;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 
 /**
  * Created by bmorrise on 9/4/17.
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class Ship extends BasePoweredSystemable implements Characterable, Itemable {
+public class Ship implements Structure, CharacterContainer, Itemable, Operatable {
 
   protected static final Logger logger = LogManager.getLogger( Ship.class );
 
+  private String name;
   private List<Character> characters = new ArrayList<>();
-  private List<Characterable> characterables = new ArrayList<>();
+  private List<CharacterContainer> characterContainers = new ArrayList<>();
   private List<Item> items = new ArrayList<>();
   private List<Deck> decks = new ArrayList<>();
   private State state;
+  private List<AccessibleToDeck> accessibleToDecks;
+  private CentralComputer centralComputer;
+
+  public Ship( String name ) {
+    this.name = name;
+  }
 
   public Ship() {
 
   }
 
-  public Ship( String name ) {
-    super( name );
+  @Override
+  public String getName() {
+    return name;
   }
 
-  private void initSystems() {
-    Reflections reflections = new Reflections( "org.morrise" );
-    Set<Class<?>> annotated = reflections.getTypesAnnotatedWith( org.morrise.api.system.annotation.System.class );
-    annotated.forEach( clazz -> {
-      try {
-        System<?> system = (System) clazz.getDeclaredConstructor( BasePoweredSystemable.class ).newInstance( this );
-        addSystem( system );
-      } catch ( Exception e ) {
-        e.printStackTrace();
-      }
-    } );
+  public CentralComputer getCentralComputer() {
+    return centralComputer;
+  }
+
+  public void setCentralComputer( CentralComputer centralComputer ) {
+    this.centralComputer = centralComputer;
   }
 
   public void addCharacter( Character character ) {
@@ -98,49 +102,37 @@ public class Ship extends BasePoweredSystemable implements Characterable, Itemab
             null );
   }
 
-  public Character getCharacterByClientId( UUID clientId ) {
+  public Character getCharacterByClientId( String clientId ) {
     return characters.stream()
             .filter( character -> character.getUuid() != null && character.getUuid().equals( clientId ) )
             .findFirst()
             .orElse( null );
   }
 
-  public List<Characterable> getCharacterables() {
-    return characterables;
+  public List<CharacterContainer> getCharacterContainers() {
+    return characterContainers;
   }
 
-  public void setCharacterables( List<Characterable> characterables ) {
-    this.characterables = characterables;
+  public void setCharacterContainers( List<CharacterContainer> characterContainers ) {
+    this.characterContainers = characterContainers;
   }
 
-  public void addCharactable( Characterable characterable ) {
-    this.characterables.add( characterable );
+  public void addCharactable( CharacterContainer characterContainer ) {
+    this.characterContainers.add( characterContainer );
   }
 
   @Override
-  public Characterable getParent() {
+  @JsonIgnore
+  public CharacterContainer getParent() {
     return null;
   }
 
   @Override
-  public Characterable getRoot() {
+  @JsonIgnore
+  public CharacterContainer getRoot() {
     return this;
   }
 
-  public void addAccess( String type, Character character ) {
-    getSystemByType( type ).addAccess( character );
-  }
-
-  public boolean hasAccess( System system, Character character ) {
-    return system.hasAccess( character );
-  }
-
-  @Override
-  public List<String> getCommands() {
-    return null;
-  }
-
-  @Override
   public List<Item> getItems() {
     return items;
   }
@@ -176,12 +168,25 @@ public class Ship extends BasePoweredSystemable implements Characterable, Itemab
     this.decks = decks;
   }
 
-  @Override
-  public void operate() {
-    super.operate();
-    characters.forEach( Character::operate );
+  public Deck getDeckByNumber( Integer number ) {
+    return decks.stream().filter( deck -> deck.getNumber().equals( number ) ).findFirst().orElse( null );
   }
 
+  public List<AccessibleToDeck> getAccessibleToDecks() {
+    return accessibleToDecks;
+  }
+
+  public void setAccessibleToDecks( List<AccessibleToDeck> accessibleToDecks ) {
+    this.accessibleToDecks = accessibleToDecks;
+  }
+
+  @Override
+  public void operate() {
+    characters.forEach( Character::operate );
+    decks.forEach( Deck::operate );
+  }
+
+  @Override
   public Room getRoomByName( String name ) {
     for ( Deck deck : decks ) {
       Room room = deck.getRoomByName( name );
@@ -192,13 +197,31 @@ public class Ship extends BasePoweredSystemable implements Characterable, Itemab
     return null;
   }
 
+  @Override
+  public <T> List<T> getRoomsByType( Class<T> clazz ) {
+    List<T> rooms = new ArrayList<>();
+    for ( Deck deck : decks ) {
+      List<T> items = deck.getRoomsByType( clazz );
+      for ( T item : items ) {
+        if ( !rooms.contains( item ) ) {
+          rooms.add( item );
+        }
+      }
+    }
+    return rooms;
+  }
+
   public void init() {
-    initSystems();
     final Ship ship = this;
+    accessibleToDecks.forEach( accessibleToDeck -> {
+      accessibleToDeck.setParent( this );
+    } );
     decks.forEach( deck -> {
-      deck.setCharacterable( ship );
+      deck.setCharacterContainer( ship );
       deck.init();
     } );
+    centralComputer = new CentralComputer( this );
+    centralComputer.init();
   }
 
   @Override
@@ -208,5 +231,17 @@ public class Ship extends BasePoweredSystemable implements Characterable, Itemab
 
   public List<String> getPossible( Character character ) {
     return null;
+  }
+
+  public boolean save() {
+    ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.enable( SerializationFeature.INDENT_OUTPUT );
+    try {
+      objectMapper.writeValue( new File( "output.json" ), this );
+      return true;
+    } catch ( IOException e ) {
+      e.printStackTrace();
+    }
+    return false;
   }
 }

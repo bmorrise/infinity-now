@@ -28,18 +28,19 @@ import org.morrise.api.system.annotation.System;
 import org.morrise.api.system.powered.BasePoweredSystemable;
 import org.morrise.api.system.powered.PoweredSystem;
 import org.morrise.api.system.status.SystemStatus;
+import org.morrise.core.models.ship.CentralComputer;
 import org.morrise.core.models.ship.shield.Shield;
 
 /**
  * Created by bmorrise on 9/21/17.
  */
 @System
-public class ShieldsSystem<T extends BasePoweredSystemable> extends PoweredSystem<T> {
+public class ShieldsSystem extends PoweredSystem<CentralComputer> {
   public static String TYPE = "shields";
   public static String KEYWORD = "shields";
   private Shield shield;
 
-  public ShieldsSystem( T entity ) {
+  public ShieldsSystem( CentralComputer entity ) {
     super( entity, 50, 100 );
   }
 
@@ -59,8 +60,9 @@ public class ShieldsSystem<T extends BasePoweredSystemable> extends PoweredSyste
   }
 
   @Override
-  public void connect( T systemable ) {
-    Shield shield = (Shield) ((Itemable) systemable).getItemByType( Shield.class );
+  public void connect( CentralComputer centralComputer ) {
+//    Shield shield = (Shield) centralComputer.getStructure().getItemByType( Shield.class );
+    Shield shield = null;
     if ( shield != null ) {
       this.shield = shield;
     }

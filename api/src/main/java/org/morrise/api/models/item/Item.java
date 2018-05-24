@@ -25,15 +25,16 @@ package org.morrise.api.models.item;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
+import org.morrise.api.InheritanceTypeIdResolver;
 import org.morrise.api.models.State;
 import org.morrise.api.models.character.Character;
 
 /**
  * Created by bmorrise on 10/6/17.
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS,
-    include = JsonTypeInfo.As.PROPERTY,
-    property = "flavor")
+@JsonTypeInfo(use = JsonTypeInfo.Id.CUSTOM, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonTypeIdResolver(InheritanceTypeIdResolver.class)
 public interface Item {
   boolean use( Character character );
 

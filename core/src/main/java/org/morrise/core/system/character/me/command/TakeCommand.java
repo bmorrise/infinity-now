@@ -23,7 +23,7 @@
 
 package org.morrise.core.system.character.me.command;
 
-import org.morrise.api.messages.MessageBroker;
+import org.morrise.api.messages.MainFrame;
 import org.morrise.api.models.character.Character;
 import org.morrise.api.models.item.Item;
 import org.morrise.api.models.item.Itemable;
@@ -48,14 +48,14 @@ public class TakeCommand extends BaseCommand<MeSystem> {
   @Override
   public boolean process( Character character, String... arguments ) {
     logger.info( "Processing speak command..." );
-    Room room = ((Room) character.getCharacterable());
+    Room room = ((Room) character.getCharacterContainer());
     Item item = room.getItemByName( arguments[0] );
     if ( item != null ) {
       character.addItem( item );
       room.removeItem( item );
-      system.sendMessage( character, MessageBroker.STATUS, "You took the " + item.getName() );
+      system.sendMessage( character, MainFrame.STATUS, "You took the " + item.getName() );
     } else {
-      system.sendMessage( character, MessageBroker.STATUS, "Nope." );
+      system.sendMessage( character, MainFrame.STATUS, "Nope." );
     }
     return true;
   }
@@ -63,8 +63,8 @@ public class TakeCommand extends BaseCommand<MeSystem> {
 //  @Override
   public List<String> getPossible( Character character ) {
     List<String> possible = new ArrayList<>();
-    if ( character.getCharacterable() instanceof Itemable ) {
-      List<Item> items = ((Itemable) character.getCharacterable()).getItems();
+    if ( character.getCharacterContainer() instanceof Itemable ) {
+      List<Item> items = ((Itemable) character.getCharacterContainer()).getItems();
       items.forEach( item -> possible.add( item.getName() ) );
       character.getItems().forEach( item -> possible.add( item.getName() ) );
     }

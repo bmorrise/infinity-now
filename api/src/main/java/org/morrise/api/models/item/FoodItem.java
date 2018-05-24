@@ -63,7 +63,6 @@ public abstract class FoodItem extends BaseItem implements Eatable {
   }
 
   @Override
-  @JsonDeserialize(as = FoodState.class)
   public State getState() {
     return super.getState();
   }

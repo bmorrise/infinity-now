@@ -27,6 +27,7 @@ import org.morrise.api.system.annotation.System;
 import org.morrise.api.system.powered.BasePoweredSystemable;
 import org.morrise.api.system.powered.PowerSource;
 import org.morrise.api.system.powered.PoweredSystem;
+import org.morrise.core.models.ship.CentralComputer;
 
 import java.util.List;
 
@@ -34,12 +35,12 @@ import java.util.List;
  * Created by bmorrise on 9/21/17.
  */
 @System
-public class PowerSystem<T extends BasePoweredSystemable> extends PoweredSystem<T> {
+public class PowerSystem extends PoweredSystem<CentralComputer> {
 
   public static String TYPE = "power";
   public static String KEYWORD = "power";
 
-  public PowerSystem( T entity ) {
+  public PowerSystem( CentralComputer entity ) {
     super( entity, 50, 100 );
   }
 

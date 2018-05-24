@@ -26,10 +26,12 @@ package org.morrise.core.system.character.me;
 import org.morrise.api.models.character.Character;
 import org.morrise.api.models.character.CharacterState;
 import org.morrise.api.system.BaseSystem;
+import org.morrise.api.system.annotation.System;
 
 /**
  * Created by bmorrise on 10/4/17.
  */
+@System
 public class MeSystem<T extends Character> extends BaseSystem<T> {
 
   public static final String KEYWORD = "me";

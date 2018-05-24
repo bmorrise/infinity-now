@@ -27,7 +27,7 @@ import io.socket.client.IO;
 import io.socket.client.Socket;
 import org.json.JSONObject;
 import org.morrise.api.messages.JoinMessage;
-import org.morrise.api.messages.MessageBroker;
+import org.morrise.api.messages.MainFrame;
 
 import java.util.Properties;
 
@@ -36,7 +36,7 @@ import java.util.Properties;
  */
 public class Client {
 
-  private MessageBroker messageBroker = MessageBroker.getInstance();
+  private MainFrame mainFrame = MainFrame.get();
 
   public void start() throws Exception {
 
@@ -50,7 +50,7 @@ public class Client {
 
     Socket client = IO.socket( url );
     client.on( Socket.EVENT_CONNECT, args -> {
-      messageBroker.sendEventBroadcast( MessageBroker.RESPONSE, "Connected to space" );
+      mainFrame.sendEventBroadcast( MainFrame.RESPONSE, "Connected to space" );
       JoinMessage joinMessage = new JoinMessage( "Aries" );
       try {
         client.emit( "join", new JSONObject( joinMessage ) );
@@ -61,7 +61,7 @@ public class Client {
     } ).on( Socket.EVENT_DISCONNECT, args -> {
     } );
 
-    messageBroker.setClient( client );
+    mainFrame.setClient( client );
 
     client.connect();
   }

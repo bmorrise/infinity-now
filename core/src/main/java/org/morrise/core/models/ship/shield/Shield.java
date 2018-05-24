@@ -73,7 +73,6 @@ public abstract class Shield extends BaseItem {
   }
 
   @Override
-  @JsonDeserialize(as = ShieldState.class)
   public State getState() {
     return super.getState();
   }
@@ -83,7 +82,7 @@ public abstract class Shield extends BaseItem {
     super.setState( state );
   }
 
-  private enum ShieldState implements State {
+  public enum ShieldState implements State {
     UP("up"),
     DOWN("down"),
     MALFUNCTION("malfunction");

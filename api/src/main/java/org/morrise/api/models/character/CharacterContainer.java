@@ -6,7 +6,7 @@ import java.util.UUID;
 /**
  * Created by bmorrise on 10/9/17.
  */
-public interface Characterable {
+public interface CharacterContainer {
   List<Character> getCharacters();
 
   void setCharacters( List<Character> characters );
@@ -15,19 +15,19 @@ public interface Characterable {
 
   Character getCharacterByUsername( String username );
 
-  Character getCharacterByClientId( UUID clientId );
+  Character getCharacterByClientId( String clientId );
 
   void removeCharacter( Character character );
 
-  List<Characterable> getCharacterables();
+  List<CharacterContainer> getCharacterContainers();
 
-  void setCharacterables( List<Characterable> characterables );
+  void setCharacterContainers( List<CharacterContainer> characterContainers );
 
-  void addCharactable( Characterable characterable );
+  void addCharactable( CharacterContainer characterContainer );
 
-  Characterable getParent();
+  CharacterContainer getParent();
 
-  Characterable getRoot();
+  CharacterContainer getRoot();
 
   String getName();
 }

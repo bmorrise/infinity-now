@@ -23,7 +23,7 @@
 
 package org.morrise.core.system.character.me.command;
 
-import org.morrise.api.messages.MessageBroker;
+import org.morrise.api.messages.MainFrame;
 import org.morrise.api.models.character.Character;
 import org.morrise.api.models.item.Item;
 import org.morrise.api.system.command.BaseCommand;
@@ -46,28 +46,32 @@ public class ThrowCommand extends BaseCommand<MeSystem> {
   @Override
   public boolean process( Character character, String... arguments ) {
     logger.info( "Processing throw command..." );
-    Item item = character.getItemByName( arguments[0] );
-    Room room = ((Room) character.getCharacterable());
-    if ( arguments.length == 1 && item != null ) {
-      character.removeItem( item );
-      room.removeItem( item );
-      system.sendMessage( character, MessageBroker.STATUS, "You threw the " + arguments[0] );
-    } else if ( arguments.length == 2 ) {
-      Character character1 = room.getCharacterByName( arguments[1] );
-      if ( item != null && character1 != null ) {
+    if ( arguments.length == 0 ) {
+      system.sendMessage( character, MainFrame.STATUS, "Nothing to throw." );
+    } else {
+      Item item = character.getItemByName( arguments[0] );
+      Room room = ((Room) character.getCharacterContainer());
+      if ( arguments.length == 1 && item != null ) {
         character.removeItem( item );
-        room.addItem( item );
-        character1.setHealth( character1.getHealth() - 1 );
-        system.sendMessage( character, MessageBroker.STATUS, "You hit " + character1.getNameAndRank() + " with an " +
-                arguments[0] );
-        system.sendMessage( character1, MessageBroker.STATUS, character.getNameAndRank() + " hit you with an " +
-                arguments[0] );
-      } else {
-        if ( item == null ) {
-          system.sendMessage( character, MessageBroker.STATUS, "You do not have a(n) " + arguments[0] );
-        }
-        if ( character1 == null ) {
-          system.sendMessage( character, MessageBroker.STATUS, character1.getNameAndRank() + " is not in the room" );
+        room.removeItem( item );
+        system.sendMessage( character, MainFrame.STATUS, "You threw the " + arguments[0] );
+      } else if ( arguments.length == 2 ) {
+        Character character1 = room.getCharacterByName( arguments[1] );
+        if ( item != null && character1 != null ) {
+          character.removeItem( item );
+          room.addItem( item );
+          character1.setHealth( character1.getHealth() - 1 );
+          system.sendMessage( character, MainFrame.STATUS, "You hit " + character1.getNameAndRank() + " with an " +
+                  arguments[0] );
+          system.sendMessage( character1, MainFrame.STATUS, character.getNameAndRank() + " hit you with an " +
+                  arguments[0] );
+        } else {
+          if ( item == null ) {
+            system.sendMessage( character, MainFrame.STATUS, "You do not have a(n) " + arguments[0] );
+          }
+          if ( character1 == null ) {
+            system.sendMessage( character, MainFrame.STATUS, character1.getNameAndRank() + " is not in the room" );
+          }
         }
       }
     }

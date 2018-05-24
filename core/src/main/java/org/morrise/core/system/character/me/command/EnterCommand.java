@@ -24,7 +24,7 @@
 package org.morrise.core.system.character.me.command;
 
 import org.morrise.api.messages.CommandMessage;
-import org.morrise.api.messages.MessageBroker;
+import org.morrise.api.messages.MainFrame;
 import org.morrise.api.models.character.Character;
 import org.morrise.api.models.character.CharacterState;
 import org.morrise.api.system.command.BaseCommand;
@@ -69,34 +69,39 @@ public class EnterCommand extends BaseCommand<MeSystem> {
       }
     }
     if ( arguments.length == 1 ) {
-      Room room = (Room) character.getCharacterable();
+      Room room = (Room) character.getCharacterContainer();
       if ( room.isRoom( arguments[0] ) ) {
-        system.sendMessage( character, MessageBroker.STATUS, "You are already in " + room.getName() );
+        system.sendMessage( character, MainFrame.STATUS, "You are already in " + room.getName() );
       }
       if ( !room.getAdjacent().contains( arguments[0] ) ) {
-        system.sendMessage( character, MessageBroker.STATUS, "There is no room " + arguments[0] );
+        system.sendMessage( character, MainFrame.STATUS, "There is no room " + arguments[0] );
       }
       Room enter = ((Deck) room.getParent()).getRoomByName( arguments[0] );
       if ( enter != null ) {
-        system.sendMessage( character, MessageBroker.STATUS, "You are leaving " + room.getName() );
-        try {
-          Thread.sleep( WALK_DURATION );
-        } catch ( Exception e ) {
-          e.printStackTrace();
+        if ( enter.canEnter( character ) ) {
+          system.sendMessage( character, MainFrame.STATUS, "You are leaving the " + room.getName() );
+          try {
+            Thread.sleep( WALK_DURATION );
+          } catch ( Exception e ) {
+            e.printStackTrace();
+          }
+          character.setRoom( enter.getName() );
+          room.removeCharacter( character );
+          enter.addCharacter( character );
+          Map<String, List<String>> keywords = new TreeMap<>();
+          keywords.putAll( enter.getKeywords() );
+          keywords.putAll( character.getKeywords() );
+          system.sendMessage( character, MainFrame.COMMANDS, keywords );
+          system.sendMessage( character, MainFrame.STATUS, character.getNameAndRank() + " entered the " + enter.getName() );
+          List<String> possible = new ArrayList<>();
+          possible.addAll( ((Room) character.getCharacterContainer()).getPossible( character ) );
+          possible.addAll( character.getPossible() );
+          system.sendMessage( character, "possible", possible );
+        } else {
+          system.sendMessage( character, MainFrame.STATUS, "You cannot enter " + arguments[0] );
         }
-        room.removeCharacter( character );
-        enter.addCharacter( character );
-        Map<String, List<String>> keywords = new TreeMap<>();
-        keywords.putAll( enter.getKeywords() );
-        keywords.putAll( character.getKeywords() );
-        system.sendMessage( character, MessageBroker.COMMANDS, keywords );
-        system.sendMessage( character, MessageBroker.STATUS, character.getNameAndRank() + " entered the room" );
-        List<String> possible = new ArrayList<>();
-        possible.addAll( ((Room) character.getCharacterable()).getPossible( character ) );
-//        possible.addAll( character.getPossible( character ) );
-        system.sendMessage( character, "possible", possible );
       } else {
-        system.sendMessage( character, MessageBroker.STATUS, "No room " + arguments[0] );
+        system.sendMessage( character, MainFrame.STATUS, "No room " + arguments[0] );
       }
     }
   }

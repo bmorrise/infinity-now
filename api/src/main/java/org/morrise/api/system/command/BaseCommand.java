@@ -30,6 +30,7 @@ import org.morrise.api.models.character.Character;
 import org.morrise.api.system.System;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -46,7 +47,6 @@ public abstract class BaseCommand<T extends System> {
 
   public BaseCommand( T system ) {
     this.system = system;
-    system.addCommand( this );
   }
 
   public String getExample() {
@@ -54,15 +54,15 @@ public abstract class BaseCommand<T extends System> {
   }
 
   public List<String> getKeywords() {
-    return keywords;
+    return Arrays.asList( this.getClass().getAnnotation( Command.class ).keywords() );
+  }
+
+  public List<String> getValidCommands() {
+    return Arrays.asList( this.getClass().getAnnotation( Command.class ).validCommands() );
   }
 
   public void setKeywords( List<String> keywords ) {
     this.keywords = keywords;
-  }
-
-  public List<String> getValidCommands() {
-    return commands;
   }
 
   public void setCommands( List<String> commands ) {

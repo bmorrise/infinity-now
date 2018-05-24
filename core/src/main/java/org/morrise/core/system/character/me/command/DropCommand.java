@@ -23,7 +23,7 @@
 
 package org.morrise.core.system.character.me.command;
 
-import org.morrise.api.messages.MessageBroker;
+import org.morrise.api.messages.MainFrame;
 import org.morrise.api.models.character.Character;
 import org.morrise.api.models.item.Item;
 import org.morrise.api.models.item.types.Settable;
@@ -47,15 +47,15 @@ public class DropCommand extends BaseCommand<MeSystem> {
   @Override
   public boolean process( Character character, String... arguments ) {
     logger.info( "Processing drop command..." );
-    Room room = ((Room) character.getCharacterable());
+    Room room = ((Room) character.getCharacterContainer());
     Item item = character.getItemByName( arguments[0] );
     if ( arguments.length == 1 ) {
       if ( item != null ) {
         character.removeItem( item );
         room.addItem( item );
-        system.sendMessage( character, MessageBroker.STATUS, "You dropped the " + arguments[0] );
+        system.sendMessage( character, MainFrame.STATUS, "You dropped the " + arguments[0] );
       } else {
-        system.sendMessage( character, MessageBroker.STATUS, "Nope." );
+        system.sendMessage( character, MainFrame.STATUS, "Nope." );
       }
     }
     if ( arguments.length == 2 ) {

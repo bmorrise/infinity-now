@@ -23,7 +23,7 @@
 
 package org.morrise.core.system.character.me.command;
 
-import org.morrise.api.messages.MessageBroker;
+import org.morrise.api.messages.MainFrame;
 import org.morrise.api.models.character.Character;
 import org.morrise.api.system.command.BaseCommand;
 import org.morrise.api.system.command.Command;
@@ -52,7 +52,7 @@ public class StatusCommand extends BaseCommand<MeSystem> {
     message.append( "Energy: " );
     message.append( Math.ceil( character.getEnergy() ) );
     message.append( "\n" );
-    system.sendMessage( character, MessageBroker.SECONDARY, message );
+    system.sendMessage( character, MainFrame.SECONDARY, message );
     return true;
   }
 }

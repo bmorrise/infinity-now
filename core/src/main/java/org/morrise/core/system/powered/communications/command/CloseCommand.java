@@ -11,7 +11,7 @@ import org.morrise.core.system.powered.communications.Message;
  * Created by bmorrise on 9/26/17.
  */
 @Command(system = CommSystem.class, keywords = {"close"})
-public class CloseCommand extends BaseCommand<CommSystem<?>> {
+public class CloseCommand extends BaseCommand<CommSystem> {
 
   public CloseCommand( CommSystem system ) {
     super( system );

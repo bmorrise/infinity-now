@@ -23,13 +23,17 @@
 
 package org.morrise.core.system.powered.sensors.command;
 
-import org.morrise.api.messages.MessageBroker;
+import org.morrise.api.messages.MainFrame;
 import org.morrise.api.models.character.Character;
 import org.morrise.api.system.System;
 import org.morrise.api.system.command.BaseCommand;
 import org.morrise.api.system.command.Command;
 import org.morrise.core.models.ship.Ship;
 import org.morrise.core.system.powered.sensors.SensorsSystem;
+
+import java.lang.annotation.Annotation;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by bmorrise on 9/26/17.
@@ -43,37 +47,37 @@ public class StatusCommand extends BaseCommand<SensorsSystem> {
 
   @Override
   public boolean process( Character character, String... arguments ) {
-    Ship ship = (Ship) character.getCharacterable().getRoot();
-    //Todo: Characterable show all know status
+    Ship ship = (Ship) character.getCharacterContainer().getRoot();
+    //Todo: CharacterContainer show all know status
     StringBuilder status = new StringBuilder();
     if ( arguments.length == 0 ) {
       status.append( "Room: " );
-      status.append( character.getCharacterable().getName() );
+      status.append( character.getCharacterContainer().getName() );
       status.append( "\n" );
-      character.getCharacterable().getCharacters().forEach( character1 -> {
+      character.getCharacterContainer().getCharacters().forEach( character1 -> {
         status.append( character1.getNameAndRank() );
         status.append( "\n" );
       } );
-      ship.getSystems().forEach( system -> {
-        showStatus( system, status );
-      } );
+//      ship.getSystems().forEach( system -> {
+//        showStatus( system, status );
+//      } );
     } else if ( arguments.length == 1 ) {
-      System system = ship.getSystemByType( arguments[0].toLowerCase() );
-      if ( system != null ) {
-        showStatus( system, status );
-      } else {
-        status.append( system );
-        status.append( " not found" );
-        status.append( "\n" );
-      }
+//      System system = ship.getSystemByType( arguments[0].toLowerCase() );
+//      if ( system != null ) {
+//        showStatus( system, status );
+//      } else {
+//        status.append( system );
+//        status.append( " not found" );
+//        status.append( "\n" );
+//      }
     }
     logger.info( "Processing status command..." );
-    system.sendMessage( character, MessageBroker.SECONDARY, status.toString() );
+    system.sendMessage( character, MainFrame.SECONDARY, status.toString() );
     return true;
   }
 
   private void showStatus( System system, StringBuilder status ) {
-    status.append( "<div class=\"system-status "+ clean( system.getStatus().toString() ) +"\">" );
+    status.append( "<div class=\"system-status " ).append( clean( system.getStatus().toString() ) ).append( "\">" );
     status.append( system.getDescription() );
     status.append( ": " );
     status.append( system.getStatus() != null ? system.getStatus() : "Unknown" );

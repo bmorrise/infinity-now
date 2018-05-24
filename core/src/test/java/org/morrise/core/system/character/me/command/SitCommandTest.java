@@ -28,7 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.morrise.api.messages.MessageBroker;
+import org.morrise.api.messages.MainFrame;
 import org.morrise.api.models.character.Character;
 import org.morrise.api.models.character.CharacterState;
 import org.morrise.core.system.character.me.MeSystem;
@@ -59,7 +59,7 @@ public class SitCommandTest {
   @Test
   public void testCharacterSittingState() {
     sitCommand.process( character );
-    verify( meSystem ).sendMessage( character, MessageBroker.STATUS, "You are already sitting" );
+    verify( meSystem ).sendMessage( character, MainFrame.STATUS, "You are already sitting" );
   }
 
   @Test

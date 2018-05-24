@@ -11,7 +11,7 @@ import org.morrise.core.system.powered.communications.Message;
  * Created by bmorrise on 9/26/17.
  */
 @Command(system = CommSystem.class, keywords = {"accept"})
-public class AcceptCommand extends BaseCommand<CommSystem<?>> {
+public class AcceptCommand extends BaseCommand<CommSystem> {
 
   public AcceptCommand( CommSystem system ) {
     super( system );

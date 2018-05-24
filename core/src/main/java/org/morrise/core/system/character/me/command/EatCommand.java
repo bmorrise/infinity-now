@@ -23,7 +23,7 @@
 
 package org.morrise.core.system.character.me.command;
 
-import org.morrise.api.messages.MessageBroker;
+import org.morrise.api.messages.MainFrame;
 import org.morrise.api.models.character.Character;
 import org.morrise.api.models.item.FoodItem;
 import org.morrise.api.models.item.Item;
@@ -46,22 +46,26 @@ public class EatCommand extends BaseCommand<MeSystem> {
   @Override
   public boolean process( Character character, String... arguments ) {
     logger.info( "Processing eat command..." );
-    Item item = character.getItemByName( arguments[0] );
-    if ( item != null ) {
-      if ( item.getState().equals( FoodItem.FoodState.EATEN ) ) {
-        system.sendMessage( character, MessageBroker.STATUS, "You have already eaten the " + item.getName() );
-        return false;
-      }
-      if ( item.getState().equals( FoodItem.FoodState.PENDING ) ) {
-        system.sendMessage( character, MessageBroker.STATUS, "You are already eating the " + item.getName() );
-        return false;
-      }
-      if ( item.use( character ) ) {
-        character.removeItem( item );
-      }
-      system.sendMessage( character, MessageBroker.RESPONSE, "You start eating the " + item.getName() );
+    if ( arguments.length == 0 ) {
+      system.sendMessage( character, MainFrame.STATUS, "Nothing to eat." );
     } else {
-      system.sendMessage( character, MessageBroker.STATUS, "You do not have the " + arguments[0] );
+      Item item = character.getItemByName( arguments[0] );
+      if ( item != null ) {
+        if ( item.getState().equals( FoodItem.FoodState.EATEN ) ) {
+          system.sendMessage( character, MainFrame.STATUS, "You have already eaten the " + item.getName() );
+          return false;
+        }
+        if ( item.getState().equals( FoodItem.FoodState.PENDING ) ) {
+          system.sendMessage( character, MainFrame.STATUS, "You are already eating the " + item.getName() );
+          return false;
+        }
+        if ( item.use( character ) ) {
+          character.removeItem( item );
+        }
+        system.sendMessage( character, MainFrame.RESPONSE, "You start eating the " + item.getName() );
+      } else {
+        system.sendMessage( character, MainFrame.STATUS, "You do not have the " + arguments[0] );
+      }
     }
     return true;
   }

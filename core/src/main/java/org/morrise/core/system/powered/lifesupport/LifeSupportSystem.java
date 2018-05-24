@@ -26,17 +26,18 @@ package org.morrise.core.system.powered.lifesupport;
 import org.morrise.api.system.annotation.System;
 import org.morrise.api.system.powered.BasePoweredSystemable;
 import org.morrise.api.system.powered.PoweredSystem;
+import org.morrise.core.models.ship.CentralComputer;
 
 /**
  * Created by bmorrise on 9/21/17.
  */
 @System
-public class LifeSupportSystem<T extends BasePoweredSystemable> extends PoweredSystem<T> {
+public class LifeSupportSystem extends PoweredSystem<CentralComputer> {
 
   public static String TYPE = "lifesupport";
   public static String KEYWORD = "ls";
 
-  public LifeSupportSystem( T entity ) {
+  public LifeSupportSystem( CentralComputer entity ) {
     super( entity, 50, 100 );
   }
 

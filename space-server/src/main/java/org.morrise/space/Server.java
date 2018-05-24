@@ -23,14 +23,14 @@
 
 package org.morrise.space;
 
-import com.corundumstudio.socketio.Configuration;
-import com.corundumstudio.socketio.SocketConfig;
-import com.corundumstudio.socketio.SocketIOServer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.morrise.api.messages.JoinMessage;
 
-import java.util.Properties;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
+import java.net.Socket;
 
 /**
  * Created by bmorrise on 9/29/17.
@@ -39,36 +39,26 @@ public class Server {
   private static final Logger logger = LogManager.getLogger( Server.class );
 
   public static void main( String[] args ) throws Exception {
-    Server server = new Server();
-    server.start();
+    InetAddress localHost = Inet4Address.getLocalHost();
+    NetworkInterface networkInterface = NetworkInterface.getByInetAddress( localHost );
+
+    String ipAddress = localHost.getHostAddress();
+    int index = ipAddress.lastIndexOf( "." );
+    String revised = ipAddress.substring( 0, index + 1 );
+
+    for ( int i = 0; i <= 255; i++ ) {
+      String newIPAddress = revised + i;
+      try ( Socket socket = new Socket() ) {
+        System.out.println( "Testing " + newIPAddress + "..." );
+        socket.connect( new InetSocketAddress( newIPAddress, 443 ), 100 );
+        System.out.println( newIPAddress );
+      } catch ( Exception e ) {
+        // Do nothing
+      }
+    }
   }
 
   public void start() throws Exception {
-    Properties properties = new Properties();
-    properties.load( getClass().getClassLoader().getResourceAsStream( "config.properties" ) );
-    String host = properties.getProperty( "host" );
-    int port = Integer.valueOf( properties.getProperty( "port" ) );
-
-    Configuration config = new Configuration();
-    config.setHostname( host );
-    config.setPort( port );
-
-    SocketConfig socketConfig = new SocketConfig();
-    socketConfig.setReuseAddress( true );
-    config.setSocketConfig( socketConfig );
-
-    config.setAuthorizationListener( handshakeData -> true );
-
-    final SocketIOServer server = new SocketIOServer( config );
-
-    server.addConnectListener( socketIOClient -> logger.info( "Connecting as: " + socketIOClient.getSessionId() ) );
-    server.addEventListener( "join", JoinMessage.class, ( client, data, ackRequest ) -> {
-      logger.info( "Received command from: " + client.getSessionId() );
-      logger.info( data.getUsername() );
-    } );
-    server.start();
-
-    Thread.sleep( Integer.MAX_VALUE );
 
   }
 

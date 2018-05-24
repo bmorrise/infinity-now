@@ -23,7 +23,7 @@
 
 package org.morrise.core.system.character.me.command;
 
-import org.morrise.api.messages.MessageBroker;
+import org.morrise.api.messages.MainFrame;
 import org.morrise.api.models.character.Character;
 import org.morrise.api.models.character.CharacterState;
 import org.morrise.api.models.item.Item;
@@ -52,40 +52,40 @@ public class SitCommand extends BaseCommand<MeSystem> {
   @Override
   public boolean process( Character character, String... arguments ) {
     if ( character.getState().equals( CharacterState.SITTING ) ) {
-      system.sendMessage( character, MessageBroker.STATUS, "You are already sitting" );
+      system.sendMessage( character, MainFrame.STATUS, "You are already sitting" );
       return true;
     }
     List<Item> items;
     if ( arguments.length == 1 ) {
-      Item item = ((Itemable) character.getCharacterable()).getItemByName( arguments[0] );
+      Item item = ((Itemable) character.getCharacterContainer()).getItemByName( arguments[0] );
       items = Collections.singletonList( item );
     } else {
-      items = ((Itemable) character.getCharacterable()).getItemsByType( Sitable.class );
+      items = ((Itemable) character.getCharacterContainer()).getItemsByType( Sitable.class );
     }
     if ( items.size() == 1 ) {
       Item item = items.get( 0 );
       if ( !(item instanceof Sitable) ) {
-        system.sendMessage( character, MessageBroker.STATUS, "You can not sit on " + item.getName() );
+        system.sendMessage( character, MainFrame.STATUS, "You can not sit on " + item.getName() );
         return true;
       }
       if ( item.getState().equals( Chair.ChairState.OCCUPIED ) ) {
-        system.sendMessage( character, MessageBroker.STATUS, "The chair is occupied" );
+        system.sendMessage( character, MainFrame.STATUS, "The chair is occupied" );
         return true;
       }
       item.use( character );
-      system.sendMessage( character, MessageBroker.RESPONSE, String.format( "%s sits down on %s", character
+      system.sendMessage( character, MainFrame.RESPONSE, String.format( "%s sits down on %s", character
               .getNameAndRank(), item.getName() ) );
     } else {
       if ( items.size() > 0 ) {
         for ( Item item : items ) {
           if ( item instanceof Sitable && item.getState().equals( Chair.ChairState.UNOCCUPIED ) ) {
             item.use( character );
-            system.sendMessage( character, MessageBroker.RESPONSE, String.format( "%s sits down in" + " %s",
+            system.sendMessage( character, MainFrame.RESPONSE, String.format( "%s sits down in" + " %s",
                     character.getNameAndRank(), item.getName() ) );
             return true;
           }
         }
-        system.sendMessage( character, MessageBroker.STATUS, "All the chairs are occupied" );
+        system.sendMessage( character, MainFrame.STATUS, "All the chairs are occupied" );
       }
     }
     return true;

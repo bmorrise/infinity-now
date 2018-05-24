@@ -23,7 +23,7 @@
 
 package org.morrise.core.system.character.me.command;
 
-import org.morrise.api.messages.MessageBroker;
+import org.morrise.api.messages.MainFrame;
 import org.morrise.api.models.character.Character;
 import org.morrise.api.system.command.BaseCommand;
 import org.morrise.api.system.command.Command;
@@ -49,7 +49,7 @@ public class InfoCommand extends BaseCommand<MeSystem> {
       output.append( "\n" );
     } );
     logger.info( "Processing InfoCommand command..." );
-    system.sendMessage( character, MessageBroker.SECONDARY, output );
+    system.sendMessage( character, MainFrame.SECONDARY, output );
     return true;
   }
 }

@@ -26,16 +26,22 @@ package org.morrise.api.system;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.morrise.api.messages.CommandMessage;
-import org.morrise.api.messages.MessageBroker;
+import org.morrise.api.messages.ConnectMessage;
+import org.morrise.api.messages.MainFrame;
+import org.morrise.api.messages.ResponseMessage;
 import org.morrise.api.models.character.Character;
 import org.morrise.api.system.capability.Capability;
 import org.morrise.api.system.command.BaseCommand;
+import org.morrise.api.system.command.Command;
 import org.morrise.api.system.common.exception.InvalidAccessException;
 import org.morrise.api.system.status.Status;
+import org.reflections.Reflections;
 
+import java.lang.reflect.InvocationTargetException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.Set;
 
 /**
  * Created by bmorrise on 9/19/17.
@@ -45,16 +51,35 @@ public abstract class BaseSystem<T extends Systemable> implements System<T> {
   protected static final Logger logger = LogManager.getLogger( BaseSystem.class );
   protected Status status;
   protected T entity;
-  protected List<BaseCommand> commands = new ArrayList<>();
+  private List<BaseCommand<?>> commands = new ArrayList<>();
 
   public BaseSystem( T entity ) {
     this.entity = entity;
+    initCommands();
+  }
+
+  private void initCommands() {
+    Reflections reflections = new Reflections( this.getClass().getPackage().getName() );
+    Set<Class<?>> annotated = reflections.getTypesAnnotatedWith( Command.class );
+    annotated.forEach( clazz -> {
+      try {
+        BaseCommand command = (BaseCommand) clazz.getDeclaredConstructor( this.getClass() ).newInstance( this );
+        commands.add( command );
+      } catch ( NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e ) {
+        logger.error( "Unable to add command " + annotated.getClass() );
+      }
+    } );
   }
 
   @Override
   public boolean executeCommand( Character character, CommandMessage commandMessage ) throws InvalidAccessException {
     BaseCommand command = commands.stream()
-        .filter( baseCommand -> baseCommand.getKeywords().contains( commandMessage.getKeyword() ) )
+        .filter( baseCommand -> {
+          if ( baseCommand.getKeywords() != null ) {
+            return baseCommand.getKeywords().contains( commandMessage.getKeyword() );
+          }
+          return false;
+        } )
         .findFirst()
         .orElse( null );
     return command != null && command.execute( character, commandMessage );
@@ -125,6 +150,33 @@ public abstract class BaseSystem<T extends Systemable> implements System<T> {
   }
 
   @Override
+  public void connect() {
+    //**** Do this connection automatically ****//
+    try {
+      Conduit conduit = Conduit.get();
+      conduit.connect( r -> {
+        ConnectMessage connectMessage = new ConnectMessage();
+        connectMessage.setSystem( getType() );
+        connectMessage.setCommands( getCommands() );
+        conduit.handshake( connectMessage );
+      });
+
+      conduit.command( requestMessage -> {
+        logger.info( "===== REQUEST =====" );
+        logger.info( requestMessage.getUUID() );
+        logger.info( requestMessage.getPayload() );
+
+        ResponseMessage responseMessage = new ResponseMessage();
+        responseMessage.setUUID( requestMessage.getUUID() );
+        responseMessage.setPayload( "This is the payload" );
+        conduit.respond( responseMessage );
+      } );
+    } catch ( URISyntaxException e ) {
+      e.printStackTrace();
+    }
+  }
+
+  @Override
   public void addCommand( BaseCommand command ) {
     commands.add( command );
   }
@@ -149,16 +201,21 @@ public abstract class BaseSystem<T extends Systemable> implements System<T> {
     return null;
   }
 
-  public MessageBroker getMessageBroker() {
-    return MessageBroker.getInstance();
+  public MainFrame getMainFrame() {
+    return MainFrame.get();
   }
 
   public void sendMessage( Character character, String item, Object message ) {
-    getMessageBroker().sendEventSingle( character.getUuid(), item, message );
+    getMainFrame().sendEventSingle( character.getUuid(), item, message );
   }
 
   @Override
   public String getInfo() {
     return getDescription() + " has no info";
+  }
+
+  @Override
+  public List<String> getPossible( Character character ) {
+    return null;
   }
 }

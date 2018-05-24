@@ -23,7 +23,7 @@
 
 package org.morrise.core.system.character.me.command;
 
-import org.morrise.api.messages.MessageBroker;
+import org.morrise.api.messages.MainFrame;
 import org.morrise.api.models.character.Character;
 import org.morrise.api.models.item.Item;
 import org.morrise.api.models.item.types.Settable;
@@ -46,11 +46,11 @@ public class LookCommand extends BaseCommand<MeSystem> {
 
   @Override
   public boolean process( Character character, String... arguments ) {
-    Room room = (Room) character.getCharacterable();
+    Room room = (Room) character.getCharacterContainer();
     List<Item> items = room.getItems();
-    system.sendMessage( character, MessageBroker.RESPONSE, room.getDescription() );
+    system.sendMessage( character, MainFrame.RESPONSE, room.getDescription() );
     StringBuilder output = new StringBuilder();
-    output.append( "In room:\n" );
+    output.append( "<b>"+ room.getName() +"</b>\n" );
     output.append( "=======================\n" );
     output.append( "Adjacent Rooms:\n" );
     room.getAdjacent().forEach( adjacent -> {
@@ -65,13 +65,18 @@ public class LookCommand extends BaseCommand<MeSystem> {
     items.forEach( item -> {
       output.append( item.getName() );
       if ( item instanceof Settable ) {
-        output.append( " with a " );
-        ((Settable) item).getItems().forEach( item1 -> {
-          output.append( item1.getName() );
-          output.append( " and " );
-        } );
-        output.delete( output.length() - 4, output.length() );
-        output.append( "on it.\n" );
+        List<Item> items1 = ((Settable) item).getItems();
+        if ( items1.size() > 0 ) {
+          output.append( " with a " );
+          items.forEach( item1 -> {
+            output.append( item1.getName() );
+            output.append( " and " );
+          } );
+          output.delete( output.length() - 4, output.length() );
+          output.append( "on it.\n" );
+        } else {
+          output.append( "\n" );
+        }
       } else {
         output.append( "\n" );
       }
@@ -81,7 +86,7 @@ public class LookCommand extends BaseCommand<MeSystem> {
       output.append( item.getName() );
       output.append( "\n" );
     } );
-    system.sendMessage( character, MessageBroker.SECONDARY, output );
+    system.sendMessage( character, MainFrame.SECONDARY, output );
     return true;
   }
 }

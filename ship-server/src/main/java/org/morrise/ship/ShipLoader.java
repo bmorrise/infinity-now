@@ -24,7 +24,6 @@
 package org.morrise.ship;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.morrise.api.models.character.BaseCharacter;
 import org.morrise.api.models.character.Character;
 import org.morrise.core.models.ship.Ship;
@@ -43,7 +42,7 @@ public class ShipLoader {
   }
 
   public Ship load( String filename ) {
-    ObjectMapper mapper = new ObjectMapper( new YAMLFactory() );
+    ObjectMapper mapper = new ObjectMapper();
     Ship ship = null;
     try {
       ship = mapper.readValue( new File( filename ), Ship.class );
@@ -51,12 +50,14 @@ public class ShipLoader {
       e.printStackTrace();
     }
 
-    ship.init();
-    for ( Character character : ship.getCharacters() ) {
-      character.addSystem( new MeSystem<>( character ) );
-      Room room = ship.getRoomByName( ((BaseCharacter) character).getRoom() );
-      character.setCharacterable( room );
-      room.addCharacter( character );
+    if ( ship != null ) {
+      ship.init();
+      for ( Character character : ship.getCharacters() ) {
+        character.addSystem( new MeSystem<>( character ) );
+        Room room = ship.getRoomByName( character.getRoom() );
+        character.setCharacterContainer( room );
+        room.addCharacter( character );
+      }
     }
 
     return ship;

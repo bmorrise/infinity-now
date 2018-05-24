@@ -23,6 +23,7 @@
 
 package org.morrise.api.system;
 
+import org.morrise.api.Operatable;
 import org.morrise.api.models.Entity;
 import org.morrise.api.models.character.Character;
 import org.morrise.api.system.capability.Capability;
@@ -34,7 +35,7 @@ import java.util.List;
 /**
  * Created by bmorrise on 9/18/17.
  */
-public interface System<T extends Systemable> extends Commandable {
+public interface System<T extends Systemable> extends Commandable, Operatable {
   Status getStatus();
 
   void setStatus( Status status );
@@ -55,6 +56,8 @@ public interface System<T extends Systemable> extends Commandable {
 
   void connect( T systemable );
 
+  void connect();
+
   void addCommand( BaseCommand command );
 
   void operate();
@@ -66,4 +69,6 @@ public interface System<T extends Systemable> extends Commandable {
   String getKeyword();
 
   String getInfo();
+
+  List<String> getPossible( Character character );
 }

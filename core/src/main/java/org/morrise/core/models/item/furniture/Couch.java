@@ -33,6 +33,8 @@ import org.morrise.api.models.item.types.Sitable;
  */
 public class Couch extends Chair implements Sitable {
 
+  public static final String TYPE = "couch";
+
   private final int MAXIUM_SEATS = 3;
   private int occupantCount = 0;
 
@@ -62,6 +64,6 @@ public class Couch extends Chair implements Sitable {
 
   @Override
   public String getType() {
-    return null;
+    return TYPE;
   }
 }

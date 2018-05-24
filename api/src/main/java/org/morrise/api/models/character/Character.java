@@ -1,25 +1,29 @@
 package org.morrise.api.models.character;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
+import org.morrise.api.InheritanceTypeIdResolver;
 import org.morrise.api.models.State;
 import org.morrise.api.models.item.Itemable;
 import org.morrise.api.system.Commandable;
 import org.morrise.api.system.Systemable;
 
-import java.util.UUID;
+import java.util.List;
 
 /**
  * Created by bmorrise on 10/8/17.
  */
-@JsonDeserialize(as = BaseCharacter.class)
+@JsonTypeInfo(use = JsonTypeInfo.Id.CUSTOM, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonTypeIdResolver(InheritanceTypeIdResolver.class)
 public interface Character extends Systemable, Commandable, Itemable {
-  Characterable getCharacterable();
+  CharacterContainer getCharacterContainer();
 
-  void setCharacterable( Characterable characterable );
+  void setCharacterContainer( CharacterContainer characterContainer );
 
-  UUID getUuid();
+  String getUuid();
 
-  void setUuid( UUID uuid );
+  void setUuid( String uuid );
 
   String getPassword();
 
@@ -37,10 +41,13 @@ public interface Character extends Systemable, Commandable, Itemable {
 
   void setUsername( String username );
 
+  @JsonIgnore
   String getFullName();
 
+  @JsonIgnore
   String getTokenName();
 
+  @JsonIgnore
   String getNameAndRank();
 
   double getHealth();
@@ -59,27 +66,9 @@ public interface Character extends Systemable, Commandable, Itemable {
 
   void setState( State state );
 
-  public enum Rank {
-    ADMIRAL( "Admiral" ),
-    CAPTAIN( "Captain" ),
-    COMMANDER( "Commander" ),
-    LIEUTENANT_COMMANDER( "Lieutenant Commander" ),
-    LIEUTENANT( "Lieutenant" ),
-    ENSIGN( "Ensign" );
+  void setRoom( String room );
 
-    private String name;
+  String getRoom();
 
-    Rank( String name ) {
-      this.name = name;
-    }
-
-    public String getName() {
-      return name;
-    }
-
-    @Override
-    public String toString() {
-      return name;
-    }
-  }
+  List<String> getPossible();
 }

@@ -11,7 +11,7 @@ import org.morrise.core.system.powered.communications.Message;
  * Created by bmorrise on 9/26/17.
  */
 @Command(system = CommSystem.class, keywords = {"send"})
-public class SendCommand extends BaseCommand<CommSystem<?>> {
+public class SendCommand extends BaseCommand<CommSystem> {
 
   public SendCommand( CommSystem system ) {
     super( system );

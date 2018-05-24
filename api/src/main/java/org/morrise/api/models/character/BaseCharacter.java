@@ -23,8 +23,7 @@
 
 package org.morrise.api.models.character;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.morrise.api.models.State;
 import org.morrise.api.models.item.Item;
 import org.morrise.api.models.item.Itemable;
@@ -34,27 +33,22 @@ import org.morrise.api.system.System;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-import java.util.function.Consumer;
 
 /**
  * Created by bmorrise on 9/25/17.
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class BaseCharacter extends BaseSystemable implements Character, Itemable {
   private String first;
   private String last;
   private String username;
   private String password;
-  private Characterable characterable;
-  private UUID uuid;
-  private Character.Rank rank;
+  private CharacterContainer characterContainer;
+  private String uuid;
+  private Rank rank;
   private double health;
   private double energy;
   private List<Item> items = new ArrayList<>();
   private String room;
-
-  @JsonDeserialize(as = CharacterState.class)
   private State state;
 
   public BaseCharacter() {
@@ -73,20 +67,21 @@ public class BaseCharacter extends BaseSystemable implements Character, Itemable
   }
 
   @Override
-  public Characterable getCharacterable() {
-    return characterable;
+  @JsonIgnore
+  public CharacterContainer getCharacterContainer() {
+    return characterContainer;
   }
 
   @Override
-  public void setCharacterable( Characterable characterable ) {
-    this.characterable = characterable;
+  public void setCharacterContainer( CharacterContainer characterContainer ) {
+    this.characterContainer = characterContainer;
   }
 
-  public UUID getUuid() {
+  public String getUuid() {
     return uuid;
   }
 
-  public void setUuid( UUID uuid ) {
+  public void setUuid( String uuid ) {
     this.uuid = uuid;
   }
 
@@ -112,6 +107,12 @@ public class BaseCharacter extends BaseSystemable implements Character, Itemable
 
   public void setLast( String last ) {
     this.last = last;
+  }
+
+  @Override
+  @JsonIgnore
+  public String getName() {
+    return first + " " + last;
   }
 
   public String getUsername() {
@@ -150,11 +151,11 @@ public class BaseCharacter extends BaseSystemable implements Character, Itemable
     this.energy = energy;
   }
 
-  public Character.Rank getRank() {
+  public Rank getRank() {
     return rank;
   }
 
-  public void setRank( Character.Rank rank ) {
+  public void setRank( Rank rank ) {
     this.rank = rank;
   }
 
@@ -209,7 +210,7 @@ public class BaseCharacter extends BaseSystemable implements Character, Itemable
         ", last='" + last + '\'' +
         ", username='" + username + '\'' +
         ", password='" + password + '\'' +
-        ", characterable=" + characterable +
+        ", characterContainer=" + characterContainer +
         ", uuid=" + uuid +
         ", rank=" + rank +
         ", health=" + health +
@@ -225,5 +226,14 @@ public class BaseCharacter extends BaseSystemable implements Character, Itemable
 
   public void setRoom( String room ) {
     this.room = room;
+  }
+
+  @Override
+  public List<String> getPossible() {
+    List<String> names = new ArrayList<>();
+    for ( Item item : items ) {
+      names.add( item.getName() );
+    }
+    return names;
   }
 }

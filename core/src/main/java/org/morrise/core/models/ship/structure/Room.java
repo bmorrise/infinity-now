@@ -23,21 +23,31 @@
 
 package org.morrise.core.models.ship.structure;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
+import org.morrise.api.InheritanceTypeIdResolver;
+import org.morrise.api.Operatable;
+import org.morrise.api.models.BaseEntity;
 import org.morrise.api.models.character.Character;
-import org.morrise.api.models.character.Characterable;
+import org.morrise.api.models.character.CharacterContainer;
 import org.morrise.api.models.item.Item;
 import org.morrise.api.models.item.Itemable;
 import org.morrise.api.models.item.types.Settable;
 import org.morrise.api.system.Systemable;
+import org.morrise.core.models.ship.Ship;
 
 import java.util.*;
 
 /**
  * Created by bmorrise on 10/1/17.
  */
+@JsonTypeInfo(use = JsonTypeInfo.Id.CUSTOM, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonTypeIdResolver(InheritanceTypeIdResolver.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Room implements Itemable, Characterable {
+public class Room extends BaseEntity implements Itemable, CharacterContainer, Operatable {
 
   private String name;
   private int width;
@@ -45,8 +55,8 @@ public class Room implements Itemable, Characterable {
   private String description;
   private List<Character> characters = new ArrayList<>();
   private List<Item> items = new ArrayList<>();
-  private Characterable parent;
-  private List<Characterable> characterables = new ArrayList<>();
+  private CharacterContainer parent;
+  private List<CharacterContainer> characterContainers = new ArrayList<>();
   private List<String> adjacent = new ArrayList<>();
   private List<String> accessibleSystems = new ArrayList<>();
 
@@ -75,10 +85,11 @@ public class Room implements Itemable, Characterable {
   }
 
   public void addCharacter( Character character ) {
-    character.setCharacterable( this );
+    character.setCharacterContainer( this );
     characters.add( character );
   }
 
+  @JsonIgnore
   public List<Character> getCharacters() {
     return characters;
   }
@@ -101,36 +112,38 @@ public class Room implements Itemable, Characterable {
   }
 
   @Override
-  public Character getCharacterByClientId( UUID clientId ) {
+  public Character getCharacterByClientId( String clientId ) {
     return null;
   }
 
   @Override
-  public List<Characterable> getCharacterables() {
-    return characterables;
+  public List<CharacterContainer> getCharacterContainers() {
+    return characterContainers;
   }
 
   @Override
-  public void setCharacterables( List<Characterable> characterables ) {
-    this.characterables = characterables;
+  public void setCharacterContainers( List<CharacterContainer> characterContainers ) {
+    this.characterContainers = characterContainers;
   }
 
   @Override
-  public void addCharactable( Characterable characterable ) {
-    this.characterables.add( characterable );
+  public void addCharactable( CharacterContainer characterContainer ) {
+    this.characterContainers.add( characterContainer );
   }
 
   @Override
-  public Characterable getParent() {
+  @JsonIgnore
+  public CharacterContainer getParent() {
     return parent;
   }
 
-  public void setParent( Characterable parent ) {
+  public void setParent( CharacterContainer parent ) {
     this.parent = parent;
   }
 
   @Override
-  public Characterable getRoot() {
+  @JsonIgnore
+  public CharacterContainer getRoot() {
     return parent != null ? parent.getRoot() : null;
   }
 
@@ -143,6 +156,7 @@ public class Room implements Itemable, Characterable {
   }
 
   @Override
+  @JsonIgnore
   public List<Item> getItems() {
     final List<Item> full = (ArrayList) ((ArrayList) items).clone();
     for ( Item item : items ) {
@@ -151,6 +165,11 @@ public class Room implements Itemable, Characterable {
       }
     }
     return full;
+  }
+
+  @JsonProperty("items")
+  public List<Item> getRoomItems() {
+    return items;
   }
 
   @Override
@@ -206,6 +225,19 @@ public class Room implements Itemable, Characterable {
     this.adjacent = adjacent;
   }
 
+  public void addAdjacent( String adjacent ) {
+    this.adjacent.add( adjacent );
+  }
+
+  public boolean isAdjacent( String adjacent ) {
+    for ( String a : this.adjacent ) {
+      if ( a.equalsIgnoreCase( adjacent ) ) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @Override
   public void removeCharacter( Character character ) {
     characters.remove( character );
@@ -223,33 +255,37 @@ public class Room implements Itemable, Characterable {
     this.accessibleSystems = accessibleSystems;
   }
 
+  public void addAccessibleSystem( String accessibleSystem ) {
+    this.accessibleSystems.add( accessibleSystem );
+  }
+
+  @JsonIgnore
   public Map<String, List<String>> getKeywords() {
     Map<String, List<String>> keywords = new TreeMap<>();
-    Characterable characterable = getRoot();
-    if ( characterable instanceof Systemable ) {
-      if ( accessibleSystems.size() == 1 && accessibleSystems.get( 0 ).equals( "all" ) ) {
-        return ((Systemable) characterable).getKeywords();
-      }
-      ((Systemable) characterable).getSystems().forEach( system -> {
-        if ( accessibleSystems.contains( system.getKeyword() ) ) {
-          keywords.put( system.getKeyword(), system.getCommands() );
-        }
-      } );
-    }
-    return keywords;
+    Ship ship = (Ship) getRoot();
+    return ship.getCentralComputer().getKeywords();
   }
 
   public List<String> getPossible( Character character ) {
     List<String> possible = new ArrayList<>();
-    Characterable characterable = getRoot();
-    if ( characterable instanceof Systemable ) {
-      ((Systemable) characterable).getSystems().forEach( system -> {
+    CharacterContainer characterContainer = getRoot();
+    if ( characterContainer instanceof Systemable ) {
+      ((Systemable) characterContainer).getSystems().forEach( system -> {
         if ( accessibleSystems.contains( system.getKeyword() ) ) {
-//          possible.addAll( system.getPossible( character ) );
+          possible.addAll( system.getPossible( character ) );
         }
       } );
     }
     possible.addAll( adjacent );
     return possible;
+  }
+
+  public boolean canEnter( Character character ) {
+    return true;
+  }
+
+  @Override
+  public void operate() {
+
   }
 }

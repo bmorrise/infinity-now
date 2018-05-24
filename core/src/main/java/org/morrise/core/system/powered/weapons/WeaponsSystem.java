@@ -26,17 +26,18 @@ package org.morrise.core.system.powered.weapons;
 import org.morrise.api.system.annotation.System;
 import org.morrise.api.system.powered.BasePoweredSystemable;
 import org.morrise.api.system.powered.PoweredSystem;
+import org.morrise.core.models.ship.CentralComputer;
 
 /**
  * Created by bmorrise on 9/18/17.
  */
 @System
-public class WeaponsSystem<T extends BasePoweredSystemable> extends PoweredSystem<T> {
+public class WeaponsSystem extends PoweredSystem<CentralComputer> {
 
   public static String TYPE = "weapons";
   public static String KEYWORD = "weapons";
 
-  public WeaponsSystem( T entity ) {
+  public WeaponsSystem( CentralComputer entity ) {
     super( entity, 50, 100 );
   }
 

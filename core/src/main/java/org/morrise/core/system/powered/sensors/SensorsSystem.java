@@ -26,17 +26,18 @@ package org.morrise.core.system.powered.sensors;
 import org.morrise.api.system.annotation.System;
 import org.morrise.api.system.powered.BasePoweredSystemable;
 import org.morrise.api.system.powered.PoweredSystem;
+import org.morrise.core.models.ship.CentralComputer;
 
 /**
  * Created by bmorrise on 9/26/17.
  */
 @System
-public class SensorsSystem<T extends BasePoweredSystemable> extends PoweredSystem<T> {
+public class SensorsSystem extends PoweredSystem<CentralComputer> {
 
   public static final String TYPE = "sensors";
   public static final String KEYWORD = "sensors";
 
-  public SensorsSystem( T entity ) {
+  public SensorsSystem( CentralComputer entity ) {
     super( entity, 50, 100 );
   }
 

@@ -40,7 +40,7 @@ public interface Systemable {
 
   System getSystemByKeyword( String keyword );
 
-  public <T> List<T> getSystemsByType( Class<T> clazz );
+  <T> List<T> getSystemsByType( Class<T> clazz );
 
   List<System<? extends Systemable>> getSystems();
 

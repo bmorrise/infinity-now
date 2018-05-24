@@ -25,12 +25,13 @@ package org.morrise.core.system.powered.communications;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.morrise.api.messages.MessageBroker;
+import org.morrise.api.messages.MainFrame;
 import org.morrise.api.models.character.Character;
-import org.morrise.api.models.character.Characterable;
+import org.morrise.api.models.character.CharacterContainer;
 import org.morrise.api.system.annotation.System;
 import org.morrise.api.system.powered.BasePoweredSystemable;
 import org.morrise.api.system.powered.PoweredSystem;
+import org.morrise.core.models.ship.CentralComputer;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -40,7 +41,7 @@ import java.util.Map;
  * Created by bmorrise on 9/18/17.
  */
 @System
-public class CommSystem<T extends BasePoweredSystemable> extends PoweredSystem<T> {
+public class CommSystem extends PoweredSystem<CentralComputer> {
 
   public static final String TYPE = "communications";
   public static final String KEYWORD = "communications";
@@ -49,7 +50,7 @@ public class CommSystem<T extends BasePoweredSystemable> extends PoweredSystem<T
   private Map<String, Channel> channels = new HashMap<>();
   private Thread thread;
 
-  public CommSystem( T entity ) {
+  public CommSystem( CentralComputer entity ) {
     super( entity );
 //    super( 50, 100 );
 //    capabilities.add( new RangeCapability( 100 ) );
@@ -101,7 +102,7 @@ public class CommSystem<T extends BasePoweredSystemable> extends PoweredSystem<T
   }
 
   private void status( String message ) {
-    ((Characterable) getSystemable()).getCharacters().forEach( character -> sendMessage( character, message ) );
+    ((CharacterContainer) getSystemable()).getCharacters().forEach( character -> sendMessage( character, message ) );
   }
 
   public void sendHail( CommSystem destinationComm ) {
@@ -109,12 +110,12 @@ public class CommSystem<T extends BasePoweredSystemable> extends PoweredSystem<T
   }
 
   public void sendSingle( Character from, Character to, Object data ) {
-    getMessageBroker().sendEventSingle( from.getUuid(), to.getUuid(), MessageBroker.RESPONSE, data );
-    getMessageBroker().persist( from.getUuid() );
+    getMainFrame().sendEventSingle( from.getUuid(), to.getUuid(), MainFrame.RESPONSE, data );
+    getMainFrame().persist( from.getUuid() );
   }
 
   public void sendMessage( Character character, Object message ) {
-    sendMessage( character, MessageBroker.RESPONSE, message );
+    sendMessage( character, MainFrame.RESPONSE, message );
   }
 
   public void sendMessage( Message message ) {
@@ -126,7 +127,7 @@ public class CommSystem<T extends BasePoweredSystemable> extends PoweredSystem<T
   }
 
   public void sendAll( Character character, Object data ) {
-    getMessageBroker().sendEventAll( character.getUuid(), MessageBroker.RESPONSE, data );
+    getMainFrame().sendEventAll( character.getUuid(), MainFrame.RESPONSE, data );
   }
 
   public void addChannel( String entity, Channel channel ) {
@@ -152,6 +153,6 @@ public class CommSystem<T extends BasePoweredSystemable> extends PoweredSystem<T
   }
 
   public void broadcastMessage( String message ) {
-    ((Characterable) entity).getCharacters().forEach( character -> sendMessage( character, message ) );
+    ((CharacterContainer) entity).getCharacters().forEach( character -> sendMessage( character, message ) );
   }
 }

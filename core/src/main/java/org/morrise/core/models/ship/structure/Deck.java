@@ -23,9 +23,12 @@
 
 package org.morrise.core.models.ship.structure;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.morrise.api.Operatable;
 import org.morrise.api.models.character.Character;
-import org.morrise.api.models.character.Characterable;
+import org.morrise.api.models.character.CharacterContainer;
+import org.morrise.core.models.ship.Ship;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,10 +38,11 @@ import java.util.UUID;
  * Created by bmorrise on 10/1/17.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Deck implements Characterable {
+public class Deck implements Structure, CharacterContainer, Operatable {
   private List<Room> rooms = new ArrayList<>();
   private Integer number;
-  private Characterable characterable;
+  private CharacterContainer characterContainer;
+  private String entryPoint;
 
   public Deck() {
   }
@@ -59,12 +63,13 @@ public class Deck implements Characterable {
     this.rooms = rooms;
   }
 
-  public Characterable getCharacterable() {
-    return characterable;
+  @JsonIgnore
+  public CharacterContainer getCharacterContainer() {
+    return characterContainer;
   }
 
-  public void setCharacterable( Characterable characterable ) {
-    this.characterable = characterable;
+  public void setCharacterContainer( CharacterContainer characterContainer ) {
+    this.characterContainer = characterContainer;
   }
 
   @Override
@@ -88,32 +93,35 @@ public class Deck implements Characterable {
   }
 
   @Override
-  public Character getCharacterByClientId( UUID clientId ) {
+  public Character getCharacterByClientId( String clientId ) {
     return null;
   }
 
   @Override
-  public List<Characterable> getCharacterables() {
+  @JsonIgnore
+  public List<CharacterContainer> getCharacterContainers() {
     return null;
   }
 
   @Override
-  public void setCharacterables( List<Characterable> characterables ) {
+  public void setCharacterContainers( List<CharacterContainer> characterContainers ) {
 
   }
 
   @Override
-  public void addCharactable( Characterable characterable ) {
+  public void addCharactable( CharacterContainer characterContainer ) {
 
   }
 
   @Override
-  public Characterable getParent() {
-    return characterable;
+  @JsonIgnore
+  public CharacterContainer getParent() {
+    return characterContainer;
   }
 
   @Override
-  public Characterable getRoot() {
+  @JsonIgnore
+  public CharacterContainer getRoot() {
     return getParent() != null ? getParent().getRoot() : null;
   }
 
@@ -123,10 +131,37 @@ public class Deck implements Characterable {
   }
 
   public Room getRoomByName( String name ) {
-    return rooms.stream()
-            .filter( room -> room.getName().toLowerCase().equals( name.toLowerCase() ) )
+    Room roomByName = rooms.stream()
+            .filter( room -> room.getName().equalsIgnoreCase( name ) )
             .findFirst()
             .orElse( null );
+    if ( roomByName == null ) {
+      Ship ship = (Ship) getParent();
+      roomByName = ship.getAccessibleToDecks().stream().filter( accessibleToDeck -> accessibleToDeck.getAccessibleTo().contains(
+              getNumber() ) ).filter( room -> room.getName().equalsIgnoreCase( name ) )
+              .findFirst().orElse( null );
+    }
+    return roomByName;
+  }
+
+  public <T> List<T> getRoomsByType( Class<T> clazz ) {
+    List<T> list = new ArrayList<>();
+    for ( Room room : rooms ) {
+      if ( clazz.isAssignableFrom( room.getClass() ) ) {
+        T t = clazz.cast( room );
+        list.add( t );
+      }
+    }
+    Ship ship = (Ship) getParent();
+    for ( AccessibleToDeck accessibleToDeck : ship.getAccessibleToDecks() ) {
+      if ( accessibleToDeck.getAccessibleTo().contains( getNumber() ) ) {
+        if ( clazz.isAssignableFrom( accessibleToDeck.getClass() ) ) {
+          T t = clazz.cast( accessibleToDeck );
+          list.add( t );
+        }
+      }
+    }
+    return list;
   }
 
   public void init() {
@@ -138,5 +173,18 @@ public class Deck implements Characterable {
   @Override
   public void removeCharacter( Character character ) {
 
+  }
+
+  public void setEntryPoint( String entryPoint ) {
+    this.entryPoint = entryPoint;
+  }
+
+  public String getEntryPoint() {
+    return entryPoint;
+  }
+
+  @Override
+  public void operate() {
+    rooms.forEach( Room::operate );
   }
 }

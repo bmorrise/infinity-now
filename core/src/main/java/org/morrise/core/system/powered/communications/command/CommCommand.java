@@ -24,7 +24,7 @@
 package org.morrise.core.system.powered.communications.command;
 
 import org.morrise.api.models.character.Character;
-import org.morrise.api.models.character.Characterable;
+import org.morrise.api.models.character.CharacterContainer;
 import org.morrise.api.system.command.BaseCommand;
 import org.morrise.api.system.command.Command;
 import org.morrise.api.system.status.SystemStatus;
@@ -49,8 +49,8 @@ public class CommCommand extends BaseCommand<CommSystem> {
   @Override
   public List<String> getKeywords() {
     List<String> keywords = new ArrayList<>();
-    ((Characterable) system.getSystemable()).getCharacters().forEach( character -> keywords.add( character.getFullName()
-    ) );
+    ((CharacterContainer) system.getSystemable().getStructure()).getCharacters().forEach( character -> keywords.add(
+            character.getFullName() ) );
     keywords.addAll( KEYWORDS );
     return keywords;
   }
@@ -77,7 +77,7 @@ public class CommCommand extends BaseCommand<CommSystem> {
           system.setStatus( SystemStatus.INACTIVE );
           break;
         default:
-          Character toCharacter = ((Characterable) system.getSystemable()).getCharacterByName( arguments[0] );
+          Character toCharacter = ((CharacterContainer) system.getSystemable()).getCharacterByName( arguments[0] );
           if ( toCharacter != null ) {
             system.sendSingle( character, toCharacter, arguments[1] );
           }

@@ -24,11 +24,12 @@
 package org.morrise.core.models.item.furniture;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 /**
  * Created by bmorrise on 10/12/17.
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class CaptainChair extends Chair {
 
   public static final String TYPE = "captain.chair";

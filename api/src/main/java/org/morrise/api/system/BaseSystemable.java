@@ -23,6 +23,7 @@
 
 package org.morrise.api.system;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.morrise.api.messages.CommandMessage;
 import org.morrise.api.models.BaseEntity;
 import org.morrise.api.models.character.Character;
@@ -41,9 +42,9 @@ public abstract class BaseSystemable extends BaseEntity implements Systemable, C
 
   private static Map<Class<? extends System>, List<Class<?>>> commands = new ConcurrentHashMap<>();
 
-  static {
-    initCommands();
-  }
+//  static {
+//    initCommands();
+//  }
 
   protected List<System<? extends Systemable>> systems = new ArrayList<>();
 
@@ -54,36 +55,51 @@ public abstract class BaseSystemable extends BaseEntity implements Systemable, C
     super( name );
   }
 
-  private static void initCommands() {
+  private void initSystems() {
     Reflections reflections = new Reflections( "org.morrise" );
-    Set<Class<?>> annotated = reflections.getTypesAnnotatedWith( Command.class );
-    Iterator<?> iter = annotated.iterator();
-    while ( iter.hasNext() ) {
-      Class clazz = (Class) iter.next();
-      Command command = (Command) clazz.getAnnotation( Command.class );
-      List<Class<?>> classList = commands.getOrDefault( command.system(), new ArrayList<>() );
-      classList.add( clazz );
-      commands.put( command.system(), classList );
-    }
-  }
-
-  private void addCommands( System system ) {
-    List<Class<?>> classList = commands.getOrDefault( system.getClass(), Collections.emptyList() );
-    classList.forEach( clazz -> {
+    Set<Class<?>> annotated = reflections.getTypesAnnotatedWith( org.morrise.api.system.annotation.System.class );
+    annotated.forEach( clazz -> {
       try {
-        BaseCommand command = (BaseCommand) clazz.getDeclaredConstructor( system.getClass() ).newInstance( system );
-        Command command1 = command.getClass().getAnnotation( Command.class );
-        command.setCommands( Arrays.asList( command1.validCommands() ) );
-        command.setKeywords( Arrays.asList( command1.keywords() ) );
-      } catch ( Exception e ) {
-        e.printStackTrace();
+        System<?> system = (System) clazz.getDeclaredConstructor( this.getClass() ).newInstance( this );
+        addSystem( system );
+      } catch ( Exception ignored ) {
+        // Ignore systems that aren't part of this systemable
       }
     } );
   }
 
+  public void init() {
+    initSystems();
+  }
+
+//  private static void initCommands() {
+//    Reflections reflections = new Reflections( "org.morrise" );
+//    Set<Class<?>> annotated = reflections.getTypesAnnotatedWith( Command.class );
+//    annotated.forEach( clazz -> {
+//      Command command = clazz.getAnnotation( Command.class );
+//      List<Class<?>> classList = commands.getOrDefault( command.system(), new ArrayList<>() );
+//      classList.add( clazz );
+//      commands.put( command.system(), classList );
+//    } );
+//  }
+
+//  private void addCommands( System system ) {
+//    List<Class<?>> classList = commands.getOrDefault( system.getClass(), Collections.emptyList() );
+//    classList.forEach( clazz -> {
+//      try {
+//        BaseCommand command = (BaseCommand) clazz.getDeclaredConstructor( system.getClass() ).newInstance( system );
+//        Command command1 = command.getClass().getAnnotation( Command.class );
+//        command.setCommands( Arrays.asList( command1.validCommands() ) );
+//        command.setKeywords( Arrays.asList( command1.keywords() ) );
+//      } catch ( Exception e ) {
+//        e.printStackTrace();
+//      }
+//    } );
+//  }
+
   @Override
   public void addSystem( System<? extends Systemable> system ) {
-    addCommands( system );
+//    addCommands( system );
     systems.add( system );
   }
 
@@ -128,11 +144,13 @@ public abstract class BaseSystemable extends BaseEntity implements Systemable, C
   }
 
   @Override
+  @JsonIgnore
   public List<System<? extends Systemable>> getSystems() {
     return systems;
   }
 
   @Override
+  @JsonIgnore
   public Map<String, List<String>> getKeywords() {
     Map<String, List<String>> keywords = new TreeMap<>();
     systems.forEach( system -> keywords.put( system.getKeyword(), system.getCommands() ) );

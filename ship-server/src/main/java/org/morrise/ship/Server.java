@@ -23,18 +23,14 @@
 
 package org.morrise.ship;
 
-import com.corundumstudio.socketio.Configuration;
-import com.corundumstudio.socketio.SocketConfig;
-import com.corundumstudio.socketio.SocketIOServer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.morrise.api.messages.CommandMessage;
-import org.morrise.api.messages.MessageBroker;
+import org.morrise.api.messages.MainFrame;
 import org.morrise.api.messages.QueueItem;
 import org.morrise.api.models.character.Character;
 import org.morrise.core.models.ship.Ship;
 
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.Queue;
@@ -45,7 +41,6 @@ public class Server {
   private static final Logger logger = LogManager.getLogger( Server.class );
   private Queue<QueueItem<CommandMessage>> commandQueue;
   private Ship ship;
-  private MessageBroker messageBroker = MessageBroker.getInstance();
   private Properties properties;
 
   public Server( String shipPath, String configPath ) throws IOException {
@@ -53,57 +48,36 @@ public class Server {
 
     ShipLoader shipLoader = new ShipLoader();
     ship = shipLoader.load( shipPath );
-
-    properties = new Properties();
-    properties.load( new FileReader( configPath ) );
   }
 
   public static void main( String[] args ) throws Exception {
+    ShipBuilder.build();
+
     Server server = new Server( args[0], args[1] );
     server.start();
-//
+
 //    Client client = new Client();
 //    client.load();
   }
 
   public void start() throws Exception {
 
-    String serverHost = properties.getProperty( "server.host" );
-    int serverPort = Integer.valueOf( properties.getProperty( "server.port" ) );
-
-    Configuration config = new Configuration();
-    config.setHostname( serverHost );
-    config.setPort( serverPort );
-
-    SocketConfig socketConfig = new SocketConfig();
-    socketConfig.setReuseAddress( true );
-    config.setSocketConfig( socketConfig );
-
-    config.setAuthorizationListener( handshakeData -> true );
-
-    final SocketIOServer server = new SocketIOServer( config );
-    messageBroker.setServer( server );
+    MainFrame mainFrame = MainFrame.get();
 
     try {
-      server.addConnectListener( socketIOClient -> {
-        logger.info( "Connecting as: " + socketIOClient.getSessionId() );
-      } );
-
-      server.addDisconnectListener( client -> {
-        Character character = ship.getCharacterByClientId( client.getSessionId() );
+      mainFrame.disconnect( (clientId, o ) -> {
+        Character character = ship.getCharacterByClientId( clientId );
         character.setUuid( null );
-        messageBroker.sendEventBroadcast( MessageBroker.STATUS, character.getFullName() + " has disconnected." );
+        mainFrame.sendEventBroadcast( MainFrame.STATUS, character.getFullName() + " has disconnected." );
       } );
 
-      server.addEventListener( "command", CommandMessage.class, ( client, data, ackRequest ) -> {
-        logger.info( "Received command from: " + client.getSessionId() );
-        QueueItem<CommandMessage> queueItem = new QueueItem<>( client.getSessionId(), data );
+      mainFrame.command( (clientId, commandMessage) -> {
+        logger.info( "Received command from: " + clientId );
+        QueueItem<CommandMessage> queueItem = new QueueItem<>( clientId, commandMessage );
         commandQueue.add( queueItem );
       } );
 
-      server.start();
-
-      MessageProcessor messageProcessor = new MessageProcessor();
+      MessageProcessor messageProcessor = new MessageProcessor( mainFrame );
 
       int loop = 0;
       while ( true ) {
@@ -124,7 +98,7 @@ public class Server {
       }
     } finally {
       logger.info( "Quitting..." );
-      server.stop();
+      mainFrame.stop();
       logger.info( "done." );
     }
   }

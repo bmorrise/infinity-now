@@ -62,7 +62,7 @@ decks:
     description: This is the captains Ready room
     accessibleSystems:
       - sensors
-      - communications
+      - mainFrame
     items:
     - flavor: org.morrise.core.models.item.furniture.Chair
       name: Chair

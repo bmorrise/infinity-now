@@ -23,7 +23,7 @@
 
 package org.morrise.core.system.powered.shields.command;
 
-import org.morrise.api.messages.MessageBroker;
+import org.morrise.api.messages.MainFrame;
 import org.morrise.api.models.character.Character;
 import org.morrise.api.system.command.BaseCommand;
 import org.morrise.api.system.command.Command;
@@ -46,7 +46,7 @@ public class DownCommand extends BaseCommand<ShieldsSystem> {
     Shield shield = system.getShield();
     if ( shield.isUp() ) {
       shield.down();
-      system.sendMessage( character, MessageBroker.STATUS, "Shields down" );
+      system.sendMessage( character, MainFrame.STATUS, "Shields down" );
     }
     return true;
   }
